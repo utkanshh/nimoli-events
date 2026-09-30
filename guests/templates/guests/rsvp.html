@@ -1,0 +1,39 @@
+{% load static %}
+{% load guest_extras %}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="theme-color" content="#24735a">
+  <title>RSVP · Nimoli Bhandari Events</title>
+  <link rel="stylesheet" href="{% static 'guests/dashboard.css' %}">
+</head>
+<body class="login-page">
+  <main class="login-card rsvp-card">
+    <a class="brand login-brand" href="#"><img class="brand-mark" src="{% static 'guests/app-icon-192.png' %}" alt=""><span>Nimoli Bhandari Events</span></a>
+    <p class="eyebrow">Your event invitation</p><h1>Your RSVP</h1>
+    <p class="subtitle">Hello {{ guest.name }}. Please let the organizer know if you can attend.</p>
+    {% if messages %}<div class="messages" aria-live="polite">{% for message in messages %}<p class="message {{ message.tags }}">{{ message }}</p>{% endfor %}</div>{% endif %}
+    <form method="post">{% csrf_token %}
+      <fieldset class="attendance-field"><legend>Can you join us?</legend>
+        <label><input type="radio" name="attendance" value="yes" {% if guest.rsvp_status == "confirmed" %}checked{% endif %} required> Yes, I’ll be there</label>
+        <label><input type="radio" name="attendance" value="no" {% if guest.rsvp_status == "declined" %}checked{% endif %} required> Sorry, I can’t make it</label>
+      </fieldset>
+      <div class="stay-fields">
+        <p class="stay-heading">Hotel stay preferences <span>Optional</span></p>
+        <label class="field" for="pax">Number of guests in your party<input id="pax" type="number" name="pax" min="1" max="100" value="{{ guest.pax|default:1 }}" required></label>
+        <label class="field" for="room_preference">Room type<select id="room_preference" name="room_preference">{% for value,label in room_choices %}<option value="{{ value }}" {% if guest.room_preference == value %}selected{% endif %}>{{ label }}</option>{% endfor %}</select></label>
+        <div class="date-fields">
+          <label class="field" for="hotel_check_in">Check-in<input id="hotel_check_in" type="date" name="hotel_check_in" value="{{ guest.hotel_check_in|date:'Y-m-d' }}"></label>
+          <label class="field" for="hotel_check_out">Check-out<input id="hotel_check_out" type="date" name="hotel_check_out" value="{{ guest.hotel_check_out|date:'Y-m-d' }}"></label>
+        </div>
+        {% for field in custom_fields %}<label class="field">{{ field.label }}<input type="text" name="custom_{{ field.id }}" maxlength="500" value="{{ guest.custom_data|get_item:field.id }}" placeholder="Optional"></label>{% endfor %}
+      </div>
+      <div class="notice"><strong>Privacy:</strong> This form does not request Aadhaar/passport numbers or document photos. Handle hotel identity checks through the hotel’s approved process.</div>
+      <button class="btn btn-primary login-submit" type="submit">Submit RSVP</button>
+    </form>
+    <p class="login-help">This private invitation link identifies your RSVP. Please don’t forward it.</p>
+  </main>
+</body>
+</html>

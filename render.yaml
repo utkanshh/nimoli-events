@@ -1,0 +1,30 @@
+services:
+  - type: web
+    name: nimoli-events
+    runtime: python
+    plan: starter
+    buildCommand: pip install -r requirements.txt && python manage.py collectstatic --no-input
+    preDeployCommand: python manage.py migrate
+    startCommand: gunicorn gather_rsvp.wsgi:application --bind 0.0.0.0:$PORT
+    healthCheckPath: /accounts/login/
+    disk:
+      name: nimoli-event-media
+      mountPath: /var/data
+      sizeGB: 5
+    envVars:
+      - key: DJANGO_DEBUG
+        value: "false"
+      - key: DJANGO_SECRET_KEY
+        generateValue: true
+      - key: GATHER_MEDIA_ROOT
+        value: /var/data/media
+      - key: DATABASE_URL
+        fromDatabase:
+          name: nimoli-events-db
+          property: connectionString
+
+databases:
+  - name: nimoli-events-db
+    databaseName: nimoli_events
+    user: nimoli_events
+    plan: basic-256mb

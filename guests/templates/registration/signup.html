@@ -1,0 +1,18 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="en">
+<head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1"><title>Create organizer account · Nimoli Bhandari Events</title><link rel="stylesheet" href="{% static 'guests/dashboard.css' %}"></head>
+<body class="login-page"><main class="login-card">
+  <a class="brand login-brand" href="{% url 'dashboard' %}"><img class="brand-mark" src="{% static 'guests/app-icon-192.png' %}" alt=""><span>Nimoli Bhandari Events</span></a>
+  {% if registration_closed %}
+    <h1>Account already set up</h1><p class="subtitle">Organizer sign-up is one-time and only available on this computer before an organizer account exists.</p><a class="btn btn-primary login-submit" href="{% url 'login' %}">Go to sign in</a>
+  {% else %}
+    <p class="eyebrow">First-time setup · This computer only</p><h1>Create your account</h1><p class="subtitle">This first account becomes the event organizer.</p>
+    {% if form.non_field_errors %}<div class="message error" role="alert">{{ form.non_field_errors }}</div>{% endif %}
+    <form method="post">{% csrf_token %}
+      {% for field in form %}<label class="field" for="{{ field.id_for_label }}">{{ field.label }}{{ field }}{% if field.help_text %}<span class="helper">{{ field.help_text|safe }}</span>{% endif %}{% for error in field.errors %}<span class="field-error">{{ error }}</span>{% endfor %}</label>{% endfor %}
+      <button class="btn btn-primary login-submit" type="submit">Create organizer account</button>
+    </form>
+    <p class="login-help">Sign-up closes automatically after the first organizer account. For a hosted deployment, create organizer accounts on the server.</p>
+  {% endif %}
+</main></body></html>

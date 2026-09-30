@@ -1,0 +1,25 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1"><title>Expenses · Nimoli Bhandari Events</title><link rel="stylesheet" href="{% static 'guests/dashboard.css' %}"></head>
+<body><div class="app">
+  <aside class="sidebar"><a class="brand" href="{% url 'dashboard' %}"><img class="brand-mark" src="{% static 'guests/app-icon-192.png' %}" alt=""><span>Nimoli Bhandari Events</span></a><p class="side-label">Workspace</p><div class="event-switch"><strong>{{ active_event.name|default:"No event selected" }}</strong><span>{{ active_event.venue|default:"Create an event to get started" }}</span></div><nav class="nav"><a class="nav-item" href="{% url 'dashboard' %}" aria-label="Overview"><span class="nav-icon">◫</span><span class="nav-label">Overview</span></a><a class="nav-item" href="{% url 'event_list' %}" aria-label="Add event"><span class="nav-icon">＋</span><span class="nav-label">Add event</span></a><a class="nav-item active" href="{% url 'expense_list' %}" aria-label="Expenses"><span class="nav-icon">＄</span><span class="nav-label">Expenses</span></a><a class="nav-item" href="{% url 'crew_list' %}" aria-label="Crew members"><span class="nav-icon">♙</span><span class="nav-label">Crew members</span></a></nav><div class="side-bottom"><div class="privacy-card"><strong>Expense tracker</strong><p>Totals are separated by event.</p></div></div></aside>
+  <main class="main"><header class="topbar"><span>{{ active_event.name }} / <strong>Expenses</strong></span><a class="btn" href="{% url 'dashboard' %}">Back to overview</a></header><div class="content">
+    <section class="heading-row"><div><p class="eyebrow">Event budget</p><h1>Expenses</h1><p class="subtitle">Track spending for {{ active_event.name }}.</p></div></section>
+    {% if messages %}<div class="messages" aria-live="polite">{% for message in messages %}<p class="message {{ message.tags }}">{{ message }}</p>{% endfor %}</div>{% endif %}
+    <section class="stats stats-single"><article class="stat"><div class="stat-top">Total recorded</div><div class="stat-value">{{ expense_total|floatformat:2 }}</div><div class="stat-note">Currency: INR · configure currency before production use</div></article></section>
+    <div class="management-grid">
+      <section class="table-card panel"><div class="panel-heading"><h2>Add expense</h2><p>Amounts are recorded in INR for this prototype.</p></div><form method="post" class="stack-form">{% csrf_token %}
+        <label class="field">Expense description<input name="title" maxlength="150" required placeholder="e.g. Venue deposit"></label>
+        <label class="field">Category<input name="category" maxlength="80" placeholder="e.g. Venue, catering"></label>
+        <label class="field">Amount (₹)<input type="number" name="amount" min="0.01" step="0.01" required></label>
+        <label class="field">Date<input type="date" name="spent_on"></label>
+        <label class="field">Notes<input name="notes" maxlength="500"></label>
+        <button class="btn btn-primary" type="submit">＋ Add expense</button>
+      </form></section>
+      <section class="table-card panel"><div class="panel-heading"><h2>Expense records</h2><p>{{ expenses|length }} recorded</p></div>
+        <div class="record-list">{% for expense in expenses %}<article class="record-row"><div><strong>{{ expense.title }}</strong><small>{{ expense.category|default:"Uncategorized" }}{% if expense.spent_on %} · {{ expense.spent_on|date:"M j, Y" }}{% endif %}{% if expense.notes %}<br>{{ expense.notes }}</small>{% else %}</small>{% endif %}</div><strong>₹{{ expense.amount|floatformat:2 }}</strong><form method="post" action="{% url 'delete_expense' expense.id %}" onsubmit="return confirm('Remove this expense?');">{% csrf_token %}<button class="remove-column" aria-label="Remove {{ expense.title }}">×</button></form></article>
+        {% empty %}<p class="empty-state">No expenses yet. Add your first expense to track the event budget.</p>{% endfor %}</div>
+      </section>
+    </div>
+  </div></main>
+</div></body></html>

@@ -1,0 +1,49 @@
+# Python
+__pycache__/
+*.py[cod]
+*$py.class
+.venv/
+venv/
+env/
+
+# Local application data and secrets
+.env
+.env.*
+!.env.example
+db.sqlite3
+*.sqlite3
+media/
+staticfiles/
+
+# Build outputs
+build/
+dist/
+*-build/
+*-dist/
+*-spec/
+delivery-build/
+delivery-dist/
+delivery-spec/
+release-final-build/
+release-final-dist/
+release-final-spec/
+release2-build/
+release2-dist/
+release2-spec/
+salution-final-build/
+salution-final-dist/
+salution-final-spec/
+shipping-build/
+shipping-dist/
+shipping-spec/
+*.spec
+*.exe
+*.zip
+*.pkg
+
+# Editor and operating-system files
+.vscode/
+.idea/
+.DS_Store
+Thumbs.db
+packaged-debug.*

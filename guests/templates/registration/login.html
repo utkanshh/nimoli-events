@@ -1,0 +1,14 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="en">
+<head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1"><title>Sign in · Nimoli Bhandari Events</title><link rel="stylesheet" href="{% static 'guests/dashboard.css' %}"></head>
+<body class="login-page"><main class="login-card">
+  <a class="brand login-brand" href="{% url 'dashboard' %}"><img class="brand-mark" src="{% static 'guests/app-icon-192.png' %}" alt=""><span>Nimoli Bhandari Events</span></a>
+  <h1>Welcome back</h1><p class="subtitle">Sign in to manage your event guest list.</p>
+  {% if form.errors %}<p class="message error" role="alert">Those sign-in details weren’t recognized. Please try again.</p>{% endif %}
+  <form method="post">{% csrf_token %}<input type="hidden" name="next" value="{{ next }}">
+    <label class="field" for="id_username">Username{{ form.username }}</label><label class="field" for="id_password">Password{{ form.password }}</label>
+    <button class="btn btn-primary login-submit" type="submit">Sign in</button>
+  </form>
+  <p class="login-help">Organizer accounts are created during local first-time setup or by the site administrator.</p>
+</main></body></html>

@@ -1,0 +1,37 @@
+Nimoli Bhandari Events for Windows
+
+RUN
+1. Extract the downloaded ZIP to a folder you control.
+2. Double-click "Nimoli Bhandari Events.exe" (or use the Nimoli Bhandari Events desktop shortcut).
+3. Choose "Open RSVP dashboard" in the Nimoli Bhandari Events window.
+4. On first run, select "Create organizer account" in the dashboard.
+5. Create an event from the left menu before adding guests.
+6. Use the left menu to switch between events, track expenses, and manage crew members.
+7. Use "Exit Nimoli Bhandari Events" in the launcher window when you are done.
+
+DATA
+Guest information stays on this computer in:
+%LOCALAPPDATA%\Gather RSVP\gather.sqlite3
+Keep this computer account and its files private. Do not share the database. Existing Gather RSVP data stays in the same location.
+Event photos and videos stay under:
+%LOCALAPPDATA%\Gather RSVP\media
+Desktop data is separate from any hosted Nimoli website. For shared use, the organizer must access the hosted site so the guest list, RSVPs, and media are all stored together.
+
+On macOS, the data file is stored at:
+~/Library/Application Support/Gather RSVP/gather.sqlite3
+
+LIMITS
+- This desktop edition works only on the computer where it is running.
+- Download the blank Excel template, fill its single Guest List sheet, and import it from the dashboard. You do not need to make separate Bride Side and Groom Side sheets. CSV import is also supported.
+- The guest table, template, and export use these headings: Group ID, First Name, Last Name, Country Code, Phone Number, Invited Dates, Category, Pax, Guest Type, Tag, Sub Category, Invite Name, Salutation. All fields are optional; rows with any data are accepted, and missing Group IDs are assigned automatically.
+- Tag is optional. Bride Side/Groom Side sheet names and Tag values are recognized; otherwise choose a default side or leave guests unassigned. Reuse a Group ID for each family/travel group; each person has a separate row. Phone numbers are optional, but WhatsApp delivery requires valid international contact details and recorded consent.
+- Guest Type choices are Outstation, Local Stay, Local Non-Stay, and International. Additional details can follow the listed columns. Imports are limited to 2,000 people and 2 MB.
+- Excel export has Bride Side and Groom Side sheets, and includes an Unassigned sheet if older untagged records exist.
+- Public guest RSVP links and WhatsApp delivery require separately hosted HTTPS.
+- The desktop app does not connect to WhatsApp automatically. Real WhatsApp campaigns require the official API setup and a hosted public HTTPS Nimoli website; give the organizer the hosted website, not just this desktop app, for campaign sending.
+- Campaigns can be queued only for guests whose WhatsApp consent was explicitly recorded. Imported contacts default to no consent. Record consent in each guest row only after the guest has agreed.
+- Review queued sends with `python manage.py send_whatsapp_campaigns --dry-run`; then send only the reviewed campaign using `python manage.py send_whatsapp_campaigns --campaign-id ID --confirm` on the hosted server.
+- Campaign delivery uses individual opted-in contacts; it does not create groups.
+- This desktop app does not sync with phones.
+- Do not collect Aadhaar/passport numbers or document images in this app.
+- The guest list starts empty. Add guests or import your own CSV.

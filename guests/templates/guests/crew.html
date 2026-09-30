@@ -1,0 +1,23 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1"><title>Crew members · Nimoli Bhandari Events</title><link rel="stylesheet" href="{% static 'guests/dashboard.css' %}"></head>
+<body><div class="app">
+  <aside class="sidebar"><a class="brand" href="{% url 'dashboard' %}"><img class="brand-mark" src="{% static 'guests/app-icon-192.png' %}" alt=""><span>Nimoli Bhandari Events</span></a><p class="side-label">Workspace</p><div class="event-switch"><strong>{{ active_event.name|default:"No event selected" }}</strong><span>{{ active_event.venue|default:"Create an event to get started" }}</span></div><nav class="nav"><a class="nav-item" href="{% url 'dashboard' %}" aria-label="Overview"><span class="nav-icon">◫</span><span class="nav-label">Overview</span></a><a class="nav-item" href="{% url 'event_list' %}" aria-label="Add event"><span class="nav-icon">＋</span><span class="nav-label">Add event</span></a><a class="nav-item" href="{% url 'expense_list' %}" aria-label="Expenses"><span class="nav-icon">＄</span><span class="nav-label">Expenses</span></a><a class="nav-item active" href="{% url 'crew_list' %}" aria-label="Crew members"><span class="nav-icon">♙</span><span class="nav-label">Crew members</span></a></nav><div class="side-bottom"><div class="privacy-card"><strong>Event crew</strong><p>Only collect team contact details needed for coordination.</p></div></div></aside>
+  <main class="main"><header class="topbar"><span>{{ active_event.name }} / <strong>Crew members</strong></span><a class="btn" href="{% url 'dashboard' %}">Back to overview</a></header><div class="content">
+    <section class="heading-row"><div><p class="eyebrow">Event team</p><h1>Crew members</h1><p class="subtitle">Manage the people helping run {{ active_event.name }}.</p></div></section>
+    {% if messages %}<div class="messages" aria-live="polite">{% for message in messages %}<p class="message {{ message.tags }}">{{ message }}</p>{% endfor %}</div>{% endif %}
+    <div class="management-grid">
+      <section class="table-card panel"><div class="panel-heading"><h2>Add a crew member</h2><p>Include only the contact details needed for event coordination.</p></div><form method="post" class="stack-form">{% csrf_token %}
+        <label class="field">Full name<input name="name" maxlength="150" required></label>
+        <label class="field">Role<input name="role" maxlength="100" required placeholder="e.g. Event coordinator"></label>
+        <label class="field">Phone<input name="phone" maxlength="32" type="tel"></label>
+        <label class="field">Email<input name="email" maxlength="254" type="email"></label>
+        <button class="btn btn-primary" type="submit">＋ Add crew member</button>
+      </form></section>
+      <section class="table-card panel"><div class="panel-heading"><h2>Your crew</h2><p>{{ crew_members|length }} member{{ crew_members|length|pluralize }}</p></div><div class="record-list">
+        {% for member in crew_members %}<article class="record-row"><div><strong>{{ member.name }}</strong><small>{{ member.role }}{% if member.phone %} · {{ member.phone }}{% endif %}{% if member.email %}<br>{{ member.email }}{% endif %}</small></div><form method="post" action="{% url 'delete_crew_member' member.id %}" onsubmit="return confirm('Remove {{ member.name }} from this event crew?');">{% csrf_token %}<button class="remove-column" aria-label="Remove {{ member.name }}">×</button></form></article>
+        {% empty %}<p class="empty-state">No crew members yet. Add your event team here.</p>{% endfor %}
+      </div></section>
+    </div>
+  </div></main>
+</div></body></html>

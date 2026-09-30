@@ -1,0 +1,188 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="theme-color" content="#24735a">
+  <meta name="description" content="Manage event RSVPs and hotel coordination.">
+  <title>Nimoli Bhandari Events — Event RSVP</title>
+  <link rel="manifest" href="{% url 'web_manifest' %}">
+  <link rel="icon" href="{% static 'guests/app-icon-192.png' %}" type="image/png">
+  <link rel="apple-touch-icon" href="{% static 'guests/app-icon-192.png' %}">
+  <link rel="stylesheet" href="{% static 'guests/dashboard.css' %}">
+</head>
+<body>
+<div class="app">
+  <aside class="sidebar">
+    <a class="brand" href="{% url 'dashboard' %}"><img class="brand-mark" src="{% static 'guests/app-icon-192.png' %}" alt=""><span>Nimoli Bhandari Events</span></a>
+    <p class="side-label">Workspace</p>
+    <div class="event-switch"><strong>{{ active_event.name|default:"No event selected" }}</strong><span>{{ active_event.venue|default:"Create an event to get started" }}</span></div>
+    <nav class="nav">
+      <a class="nav-item active" href="{% url 'dashboard' %}" aria-label="Overview"><span class="nav-icon">◫</span><span class="nav-label">Overview</span></a>
+      <a class="nav-item" href="#guest-list" aria-label="Guest list"><span class="nav-icon">♧</span><span class="nav-label">Guest list</span><small>{{ counts.total }}</small></a>
+      <button class="nav-item" type="button" data-open="campaign-dialog" aria-label="Messages"><span class="nav-icon">◉</span><span class="nav-label">Messages</span></button>
+      <a class="nav-item" href="{% url 'event_list' %}" aria-label="Add event"><span class="nav-icon">＋</span><span class="nav-label">Add event</span></a>
+      <a class="nav-item" href="{% url 'expense_list' %}" aria-label="Expenses"><span class="nav-icon">＄</span><span class="nav-label">Expenses</span></a>
+      <a class="nav-item" href="{% url 'crew_list' %}" aria-label="Crew members"><span class="nav-icon">♙</span><span class="nav-label">Crew members</span></a>
+    </nav>
+    <div class="side-bottom">
+      <div class="privacy-card"><strong>Guest data, thoughtfully</strong><p>Collect only what the event needs. Keep identity documents off WhatsApp.</p></div>
+      {% if request.user.is_authenticated %}
+        <div class="profile"><span class="avatar">{{ request.user.username|slice:":2"|upper }}</span><span><strong>{{ request.user.get_username }}</strong><small>Event organizer</small></span></div>
+      {% else %}
+        <div class="profile"><span class="avatar">D</span><span><strong>Local demo</strong><small>Loopback only</small></span></div>
+      {% endif %}
+    </div>
+  </aside>
+  <main class="main">
+    <header class="topbar">
+      <span>Events / <strong>{{ active_event.name|default:"Set up your event" }}</strong></span>
+      <div class="topbar-actions">
+        {% if signup_available %}<a class="btn" href="{% url 'organizer_signup' %}">Create organizer account</a>{% endif %}
+        {% if request.user.is_authenticated %}<form method="post" action="{% url 'logout' %}">{% csrf_token %}<button class="btn" type="submit">Log out</button></form>{% else %}<span class="demo-badge">Local demo · sign-in bypassed</span>{% endif %}
+      </div>
+    </header>
+    <div class="content">
+      <section class="heading-row">
+        <div><p class="eyebrow">Event workspace</p><h1>Guest overview</h1><p class="subtitle">Manage invitations, RSVPs, hotel preferences, expenses, and your crew.</p></div>
+        <div class="heading-actions">
+          <button class="btn" id="install-app" type="button">Install app</button>
+          <a class="btn" href="{% url 'guest_template' %}">↓ &nbsp;Download Excel template</a>
+          <button class="btn" type="button" data-open="import-dialog" {% if not active_event %}disabled{% endif %}>↑ &nbsp;Import Excel/CSV</button>
+          <a class="btn" href="{% url 'export_excel' %}">↓ &nbsp;Export Excel</a>
+          <button class="btn btn-primary" type="button" data-open="guest-dialog" {% if not active_event %}disabled{% endif %}>＋ &nbsp;Add guest</button>
+        </div>
+      </section>
+      <div class="dashboard-layout">
+      <div class="dashboard-primary">
+      {% if messages %}<div class="messages" aria-live="polite">{% for message in messages %}<p class="message {{ message.tags }}">{{ message }}</p>{% endfor %}</div>{% endif %}
+      <section class="stats">
+        <article class="stat"><div class="stat-top">Total invited <span class="stat-icon">♧</span></div><div class="stat-value">{{ counts.total }}</div><div class="stat-note">Guests in your list</div></article>
+        <article class="stat"><div class="stat-top">Confirmed <span class="stat-icon">✓</span></div><div class="stat-value">{{ counts.confirmed }}</div><div class="stat-note"><em>{{ confirmed_percent }}%</em> of invited guests</div></article>
+        <article class="stat"><div class="stat-top">Awaiting reply <span class="stat-icon">◷</span></div><div class="stat-value">{{ counts.pending }}</div><div class="stat-note">Ready for a gentle reminder</div></article>
+        <article class="stat"><div class="stat-top">Hotel rooms <span class="stat-icon">⌂</span></div><div class="stat-value">{{ counts.rooms }}</div><div class="stat-note">Guests with a room status</div></article>
+      </section>
+      <section class="workspace-shortcuts">
+        <a class="shortcut" href="{% url 'event_list' %}"><span>＋</span><strong>Add event</strong><small>Set event name, venue, dates</small></a>
+        <a class="shortcut" href="{% url 'expense_list' %}"><span>＄</span><strong>Expenses</strong><small>Track event spending</small></a>
+        <a class="shortcut" href="{% url 'crew_list' %}"><span>♙</span><strong>Crew members</strong><small>Manage your event team</small></a>
+      </section>
+      <section class="workspace-shortcuts" aria-label="Guest list tabs">
+        <a class="shortcut" href="?side=bride#guest-list"><span>♡</span><strong>Bride Side</strong><small>{{ side_counts.bride }} guest{{ side_counts.bride|pluralize }}</small></a>
+        <a class="shortcut" href="?side=groom#guest-list"><span>♡</span><strong>Groom Side</strong><small>{{ side_counts.groom }} guest{{ side_counts.groom|pluralize }}</small></a>
+        {% if side_counts.unassigned %}<a class="shortcut" href="?side=unassigned#guest-list"><span>↗</span><strong>Unassigned</strong><small>{{ side_counts.unassigned }} legacy guest{{ side_counts.unassigned|pluralize }} to assign</small></a>{% endif %}
+        <a class="shortcut" href="#extra-details"><span>＋</span><strong>Extra details</strong><small>{{ custom_fields|length }} custom field{{ custom_fields|length|pluralize }}</small></a>
+      </section>
+      <section id="extra-details" class="table-card panel"><div class="panel-heading"><h2>Extra details</h2><p>Add optional RSVP questions, such as dietary preference or accessibility needs. These fields are shared across event workspaces.</p></div>
+        {% if custom_fields %}<p>{% for field in custom_fields %}<span class="status-chip">{{ field.label }}</span> {% endfor %}</p>{% else %}<p class="empty-state">No extra detail fields yet.</p>{% endif %}
+        <button class="btn" type="button" data-open="column-dialog">＋ Add extra detail</button>
+      </section>
+      <section class="campaign"><div class="campaign-copy"><span class="campaign-icon">◉</span><div><h2>WhatsApp Business invitations</h2><p>Queue a private one-to-one invite for opted-in guests.</p></div></div><button class="btn btn-whatsapp" type="button" data-open="campaign-dialog">◉ &nbsp; WhatsApp Business</button></section>
+      {% if not active_event %}<div class="notice public-link-notice"><strong>Get started:</strong> Create your event from the left menu before adding or importing guests.</div>{% endif %}
+      {% if not public_rsvp_enabled %}<div class="notice public-link-notice"><strong>Local-only mode:</strong> RSVP links work on this computer only. Exported invite links stay blank until public HTTPS hosting is configured.</div>{% endif %}
+      <section id="guest-list">
+        <nav class="guest-side-tabs" aria-label="Guest list sheets">
+          <a href="?side=bride#guest-list" {% if selected_side == "bride" %}aria-current="page"{% endif %}>Bride Side <span>{{ side_counts.bride }}</span></a>
+          <a href="?side=groom#guest-list" {% if selected_side == "groom" %}aria-current="page"{% endif %}>Groom Side <span>{{ side_counts.groom }}</span></a>
+          <a href="{% url 'dashboard' %}#guest-list" {% if not selected_side %}aria-current="page"{% endif %}>All Guests <span>{{ counts.total }}</span></a>
+          {% if side_counts.unassigned %}<a href="?side=unassigned#guest-list" {% if selected_side == "unassigned" %}aria-current="page"{% endif %}>Unassigned <span>{{ side_counts.unassigned }}</span></a>{% endif %}
+        </nav>
+        <div class="section-head"><div><h2>{% if selected_side == "bride" %}Bride Side{% elif selected_side == "groom" %}Groom Side{% elif selected_side == "unassigned" %}Unassigned guests{% else %}All guest groups{% endif %}</h2><span>{{ guest_page.paginator.count }} guest rows · one row per person; families share a serial number</span></div><button class="btn" type="button" data-open="column-dialog">＋ Add extra detail</button></div>
+        <div class="table-card">
+          <form class="table-tools" method="get">
+            <div class="filters">
+              {% if selected_side %}<input type="hidden" name="side" value="{{ selected_side }}">{% endif %}
+              <label class="search-wrap"><span>⌕</span><input class="search" type="search" name="q" value="{{ query }}" placeholder="Search name or phone" aria-label="Search guests"></label>
+              <select class="filter-select" name="status" aria-label="Filter RSVP status"><option value="">All responses</option>{% for value,label in status_choices %}<option value="{{ value }}" {% if selected_status == value %}selected{% endif %}>{{ label }}</option>{% endfor %}</select>
+              <button class="btn" type="submit">Filter</button>
+            </div>
+            <a class="btn" href="{% url 'export_guests' %}">↓ &nbsp;Export list</a>
+          </form>
+          <div class="table-wrap"><table class="guest-roster">
+            <thead><tr><th>Group ID</th><th>First Name</th><th>Last Name</th><th>Country Code</th><th>Phone Number</th><th>Invited Dates</th><th>Category</th><th>Pax</th><th>Guest Type</th><th>Tag</th><th>Sub Category</th><th>Invite Name</th><th>Salutation</th>
+              {% for field in custom_fields %}<th><span class="column-title">{{ field.label }}</span><form method="post" action="{% url 'delete_guest_field' field.id %}" class="remove-column-form" onsubmit="return confirm('Remove this extra-detail column and all saved values?');">{% csrf_token %}<button class="remove-column" type="submit" aria-label="Remove {{ field.label }}">×</button></form></th>{% endfor %}
+              <th>Actions</th></tr></thead>
+            <tbody>
+              {% for guest in guests %}
+              <tr>
+                <td><form id="guest-update-{{ guest.id }}" method="post" action="{% url 'update_guest' guest.id %}">{% csrf_token %}</form><input class="custom-cell" type="number" min="1" step="1" name="group_serial" value="{{ guest.group_serial|default_if_none:'' }}" form="guest-update-{{ guest.id }}" aria-label="Group ID for {{ guest.name }}"></td>
+                <td><input class="custom-cell" type="text" maxlength="150" name="name" value="{{ guest.name }}" form="guest-update-{{ guest.id }}" aria-label="First name"></td>
+                <td><input class="custom-cell" type="text" maxlength="150" name="last_name" value="{{ guest.last_name }}" form="guest-update-{{ guest.id }}" aria-label="Last name"></td>
+                <td><input class="custom-cell" type="text" maxlength="6" name="country_code" value="{{ guest.country_code }}" list="country-code-options" form="guest-update-{{ guest.id }}" aria-label="Country code for {{ guest.name }}" placeholder="Search or select +91"></td>
+                <td><input class="custom-cell" type="tel" maxlength="32" name="phone" value="{{ guest.phone }}" form="guest-update-{{ guest.id }}" aria-label="Phone number for {{ guest.name }}"></td>
+                <td><input class="custom-cell" type="date" name="invited_date" value="{{ guest.invited_date|date:'Y-m-d' }}" form="guest-update-{{ guest.id }}" aria-label="Invited dates for {{ guest.name }}"></td>
+                <td><input class="custom-cell" type="text" maxlength="100" name="category" value="{{ guest.category }}" form="guest-update-{{ guest.id }}" aria-label="Category for {{ guest.name }}" placeholder="e.g. Cousin"></td>
+                <td><input class="custom-cell" type="number" min="1" max="100" name="pax" value="{{ guest.pax }}" form="guest-update-{{ guest.id }}" aria-label="Pax for {{ guest.name }}"></td>
+                <td><select name="guest_type" form="guest-update-{{ guest.id }}" aria-label="Guest type for {{ guest.name }}"><option value="">Not provided</option>{% for value,label in guest_type_choices %}<option value="{{ value }}" {% if guest.guest_type == value %}selected{% endif %}>{{ label }}</option>{% endfor %}</select></td>
+                <td><select name="side_tag" form="guest-update-{{ guest.id }}" aria-label="Tag for {{ guest.name }}"><option value="">Unassigned</option>{% for value,label in side_tag_choices %}<option value="{{ value }}" {% if guest.side_tag == value %}selected{% endif %}>{{ label }}</option>{% endfor %}</select></td>
+                <td><select name="sub_category" form="guest-update-{{ guest.id }}" aria-label="Sub category for {{ guest.name }}"><option value="">—</option>{% for value,label in sub_category_choices %}<option value="{{ value }}" {% if guest.sub_category == value %}selected{% endif %}>{{ label }}</option>{% endfor %}</select></td>
+                <td><input class="custom-cell" type="text" maxlength="150" name="invite_name" value="{{ guest.invite_name }}" form="guest-update-{{ guest.id }}" aria-label="Invite name for {{ guest.name }}"></td>
+                <td><input class="custom-cell" type="text" maxlength="40" name="salutation" value="{{ guest.salutation }}" form="guest-update-{{ guest.id }}" aria-label="Salutation for {{ guest.name }}" placeholder="e.g. Dr."></td>
+                {% for item in guest.custom_values %}<td><input class="custom-cell" type="text" maxlength="500" name="custom_{{ item.field.id }}" value="{{ item.value }}" form="guest-update-{{ guest.id }}" aria-label="{{ item.field.label }} for {{ guest.name }}"></td>{% endfor %}
+                <td><label class="consent-state" title="Only select opted in after the guest has agreed to receive WhatsApp messages. {% if guest.whatsapp_opt_in_at %}Consent recorded {{ guest.whatsapp_opt_in_at|date:'M j, Y' }}.{% endif %}">WhatsApp consent<select name="whatsapp_opt_in" form="guest-update-{{ guest.id }}" aria-label="WhatsApp consent for {{ guest.name }}"><option value="no" {% if not guest.whatsapp_opt_in or guest.whatsapp_opted_out_at %}selected{% endif %}>No consent</option><option value="yes" {% if guest.whatsapp_opt_in and not guest.whatsapp_opted_out_at %}selected{% endif %}>Opted in</option></select></label><button class="save-row" type="submit" form="guest-update-{{ guest.id }}">Save</button><a class="save-row" href="{% url 'guest_rsvp' guest.rsvp_token %}" target="_blank" rel="noopener">RSVP</a>{% if guest.whatsapp_invite_link %}<a class="save-row" href="{{ guest.whatsapp_invite_link }}" target="_blank" rel="noopener">WhatsApp</a>{% endif %}</td>
+              </tr>
+              {% empty %}<tr><td class="empty" colspan="{{ column_count }}">Your guest list is empty. Download the Excel template or add a guest to get started.</td></tr>{% endfor %}
+            </tbody>
+          </table></div>
+          <div class="table-footer"><span>{{ guests|length }} guest{{ guests|length|pluralize }} displayed</span><span>Invitees can submit their RSVP, hotel dates, and party size through their private link. Identity document details are not collected here.</span></div>
+        </div>
+        {% if guest_page.has_other_pages %}<nav class="table-tools" aria-label="Guest list pages"><span>{% if guest_page.has_previous %}<a class="btn" href="?page={{ guest_page.previous_page_number }}{% if query %}&q={{ query|urlencode }}{% endif %}{% if selected_status %}&status={{ selected_status|urlencode }}{% endif %}{% if selected_side %}&side={{ selected_side|urlencode }}{% endif %}">Previous</a>{% endif %}</span><span>Page {{ guest_page.number }} / {{ guest_page.paginator.num_pages }}</span><span>{% if guest_page.has_next %}<a class="btn" href="?page={{ guest_page.next_page_number }}{% if query %}&q={{ query|urlencode }}{% endif %}{% if selected_status %}&status={{ selected_status|urlencode }}{% endif %}{% if selected_side %}&side={{ selected_side|urlencode }}{% endif %}">Next</a>{% endif %}</span></nav>{% endif %}
+        {% if whatsapp_business_configured and public_rsvp_enabled %}<p class="demo-footnote">WhatsApp Business is configured. Campaigns are queued first; run the hosted sender command to deliver one-to-one template messages. Only mark a guest opted in after recording their permission.</p>{% else %}<p class="demo-footnote">WhatsApp Business delivery is not connected on this install. Configure the Meta Cloud API and public HTTPS site for campaigns.</p>{% endif %}
+      </section>
+      </div>
+      <aside class="event-media-panel" aria-labelledby="event-media-heading">
+        <div class="panel-heading"><h2 id="event-media-heading">Event media</h2><p>Private to organizers. Photos and videos stay in this event workspace.</p></div>
+        <form class="media-upload-form" method="post" action="{% url 'upload_event_media' %}" enctype="multipart/form-data">
+          {% csrf_token %}
+          <label class="field">Add a photo or video<input type="file" name="media_file" accept=".jpg,.jpeg,.png,.webp,.mp4,.webm,image/jpeg,image/png,image/webp,video/mp4,video/webm" required {% if not active_event %}disabled{% endif %}></label>
+          <label class="field">Caption (optional)<input type="text" name="title" maxlength="100" placeholder="e.g. Welcome dinner" {% if not active_event %}disabled{% endif %}></label>
+          <button class="btn btn-primary" type="submit" {% if not active_event %}disabled{% endif %}>＋ Upload media</button>
+          <small>JPG, PNG, WebP up to 20 MB; MP4/WebM up to 100 MB. 40 items, 500 MB per event.</small>
+        </form>
+        <div class="event-media-list">
+          {% for item in event_media %}
+          <article class="event-media-item">
+            {% if item.media_type == "image" %}
+            <img src="{% url 'event_media_file' item.id %}" alt="{{ item.title|default:'Event photo' }}" loading="lazy">
+            {% else %}
+            <video controls preload="metadata" aria-label="{{ item.title|default:'Event video' }}"><source src="{% url 'event_media_file' item.id %}" type="{{ item.content_type }}"></video>
+            {% endif %}
+            <div class="event-media-caption"><span>{{ item.title|default:item.get_media_type_display }}</span><form method="post" action="{% url 'delete_event_media' item.id %}" onsubmit="return confirm('Remove this media from the event?');">{% csrf_token %}<button class="remove-media" type="submit" aria-label="Remove {{ item.title|default:item.get_media_type_display }}">Remove</button></form></div>
+          </article>
+          {% empty %}<p class="empty-state">No event media yet. Upload a photo or video to keep it handy here.</p>{% endfor %}
+        </div>
+        {% if event_media_count > 8 %}<p class="media-count">Showing 8 of {{ event_media_count }} media items.</p>{% endif %}
+      </aside>
+      </div>
+    </div>
+  </main>
+</div>
+<datalist id="country-code-options">{% for code,label in country_code_choices %}<option value="{{ code }}" label="{{ label }}"></option>{% endfor %}</datalist>
+<dialog class="modal" id="guest-dialog"><form method="post" action="{% url 'add_guest' %}">{% csrf_token %}
+  <div class="modal-head"><div><h2>Add a family member</h2><p>Family or travel-group members share one serial number.</p></div><button class="close" type="button" data-close>×</button></div>
+  <div class="modal-body"><label class="field">Bride or Groom side<select name="side_tag"><option value="">Unassigned</option>{% for value,label in side_tag_choices %}<option value="{{ value }}">{{ label }}</option>{% endfor %}</select></label><label class="field">Group ID<input type="number" name="group_serial" min="1" step="1" placeholder="Leave blank to assign next number"></label><label class="field">First Name<input name="name" maxlength="150"></label><label class="field">Last Name<input name="last_name" maxlength="150"></label><div class="date-fields"><label class="field">Country Code<input name="country_code" maxlength="6" list="country-code-options" placeholder="Search or select +91"></label><label class="field">Phone Number<input name="phone" maxlength="32" placeholder="9876543210"></label></div><label class="field">Guest Type<select name="guest_type"><option value="">Not provided</option>{% for value,label in guest_type_choices %}<option value="{{ value }}">{{ label }}</option>{% endfor %}</select></label><label class="consent"><input type="checkbox" name="message_consent" value="yes"><span>Select only if the guest agreed to receive WhatsApp event messages. Without consent, contact details are stored but not messaged.</span></label><p class="form-help">All guest details are optional. A phone number can be added later; messaging requires valid contact details and the guest’s consent.</p></div>
+  <div class="modal-foot"><button class="btn" type="button" data-close>Cancel</button><button class="btn btn-primary">Add family member</button></div>
+</form></dialog>
+<dialog class="modal" id="import-dialog"><form method="post" action="{% url 'import_guests' %}" enctype="multipart/form-data">{% csrf_token %}
+  <div class="modal-head"><div><h2>Import family guest list</h2><p>One sheet is enough. Nimoli sorts the guests into Bride Side and Groom Side.</p></div><button class="close" type="button" data-close>×</button></div>
+  <div class="modal-body"><a class="btn" href="{% url 'guest_template' %}">Download the one-sheet Excel template</a><label class="field">Excel (.xlsx) or CSV<input name="guest_file" type="file" accept=".xlsx,.csv,application/vnd.openxmlformats-officedocument.spreadsheetml.sheet,text/csv" required></label><label class="field">Optional default side when Tag is missing<select name="default_side"><option value="">Leave unassigned</option>{% for value,label in side_tag_choices %}<option value="{{ value }}">{{ label }}</option>{% endfor %}</select></label><div class="notice">Use the provided EventIQ headings: <strong>Group ID, First Name, Last Name, Country Code, Phone Number, Invited Dates, Category, Pax, Guest Type, Tag, Sub Category, Invite Name, Salutation</strong>. Any columns may be missing and each field may be blank. Rows with any data will be added; an empty Group ID is assigned automatically. Tag, Guest Type, phone, and other details are optional. Bride Side/Groom Side sheet names and Tag values are recognized when provided. Extra columns are retained as additional guest details. Up to 2,000 guest rows and 2 MB. Imported contacts default to no WhatsApp consent.</div></div>
+  <div class="modal-foot"><button class="btn" type="button" data-close>Cancel</button><button class="btn btn-primary">Import guests</button></div>
+</form></dialog>
+<dialog class="modal" id="column-dialog"><form method="post" action="{% url 'add_guest_field' %}">{% csrf_token %}
+  <div class="modal-head"><div><h2>Add a guest-list column</h2><p>Collect one extra event-specific detail.</p></div><button class="close" type="button" data-close>×</button></div>
+  <div class="modal-body"><label class="field">Column name<input name="label" maxlength="50" required placeholder="e.g. Dietary preference"></label><div class="notice">This creates a text field for organizers and guests. Removing a column permanently removes its saved values. Do not collect ID numbers here.</div><p class="helper">{{ custom_fields|length }} of {{ custom_field_limit }} custom columns used.</p></div>
+  <div class="modal-foot"><button class="btn" type="button" data-close>Cancel</button><button class="btn btn-primary">Add column</button></div>
+</form></dialog>
+<dialog class="modal" id="campaign-dialog"><form method="post" action="{% url 'queue_whatsapp_campaign' %}">{% csrf_token %}
+  <div class="modal-head"><div><h2>WhatsApp Business campaign</h2><p>One-to-one messages · no group</p></div><button class="close" type="button" data-close>×</button></div>
+  <div class="modal-body"><div class="preview-bubble">Approved template parameters: first = guest name; second = private RSVP link.</div>
+    {% if whatsapp_business_configured and public_rsvp_enabled %}<label class="field">Approved WhatsApp template name<input name="template_name" maxlength="512" required placeholder="e.g. event_invitation"></label><label class="field">Template language code<input name="language_code" maxlength="16" value="en" required></label><div class="notice">Only queue messages to guests who explicitly agreed to receive them. The organizer must record each guest’s consent using the WhatsApp consent control in the guest row. This queues messages only to opted-in guests with a valid international number. Before queueing, verify your template is approved and uses body parameters in this exact order: guest name, RSVP URL. A server operator must run <code>python manage.py send_whatsapp_campaigns</code> to begin delivery. Messages are sent individually, and sending cannot be undone.</div>
+    {% else %}<div class="notice">Business API not connected. Hosting on a public HTTPS site and setting WHATSAPP_PHONE_NUMBER_ID, WHATSAPP_ACCESS_TOKEN, WHATSAPP_API_VERSION plus GATHER_PUBLIC_BASE_URL are required before campaigns can be queued.</div>{% endif %}
+    {% if whatsapp_campaigns %}<h3>Recent campaigns</h3><ul>{% for campaign in whatsapp_campaigns %}<li>{{ campaign.created_at|date:"M j, Y H:i" }} · {{ campaign.get_status_display }} · {{ campaign.sent_count }} sent / {{ campaign.recipient_count }} recipients · {{ campaign.failed_count }} failed</li>{% endfor %}</ul>{% endif %}
+  </div><div class="modal-foot"><button class="btn" type="button" data-close>Close</button>{% if whatsapp_business_configured and public_rsvp_enabled %}<button class="btn btn-primary" type="submit">Queue messages</button>{% endif %}</div>
+</form></dialog>
+<dialog class="modal" id="install-dialog"><div class="modal-head"><div><h2>Install Nimoli Bhandari Events</h2><p>Use Nimoli Bhandari Events like an app on this device.</p></div><button class="close" type="button" data-close>×</button></div><div class="modal-body"><p>Use your browser’s Install option on desktop/Android. On iPhone/iPad, use Safari Share → Add to Home Screen. Online installation needs HTTPS.</p></div><div class="modal-foot"><button class="btn" type="button" data-close>Got it</button></div></dialog>
+<script src="{% static 'guests/dashboard.js' %}" defer></script>
+</body>
+</html>

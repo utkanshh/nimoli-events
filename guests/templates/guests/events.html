@@ -1,0 +1,42 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1"><title>Events · Nimoli Bhandari Events</title><link rel="stylesheet" href="{% static 'guests/dashboard.css' %}"></head>
+<body><div class="app">
+  <aside class="sidebar">
+    <a class="brand" href="{% url 'dashboard' %}"><img class="brand-mark" src="{% static 'guests/app-icon-192.png' %}" alt=""><span>Nimoli Bhandari Events</span></a>
+    <p class="side-label">Workspace</p>
+    <div class="event-switch"><strong>{{ active_event.name|default:"No event selected" }}</strong><span>{{ active_event.venue|default:"Create an event to get started" }}</span></div>
+    <nav class="nav">
+      <a class="nav-item" href="{% url 'dashboard' %}" aria-label="Overview"><span class="nav-icon">◫</span><span class="nav-label">Overview</span></a>
+      <a class="nav-item active" href="{% url 'event_list' %}" aria-label="Add event"><span class="nav-icon">＋</span><span class="nav-label">Add event</span></a>
+      <a class="nav-item" href="{% url 'expense_list' %}" aria-label="Expenses"><span class="nav-icon">＄</span><span class="nav-label">Expenses</span></a>
+      <a class="nav-item" href="{% url 'crew_list' %}" aria-label="Crew members"><span class="nav-icon">♙</span><span class="nav-label">Crew members</span></a>
+    </nav>
+    <div class="side-bottom"><div class="privacy-card"><strong>Event workspace</strong><p>Guests, expenses, and crew are organized by event.</p></div></div>
+  </aside>
+  <main class="main"><header class="topbar"><span>Workspace / <strong>Events</strong></span><a class="btn" href="{% url 'dashboard' %}">Back to overview</a></header>
+    <div class="content">
+      <section class="heading-row"><div><p class="eyebrow">Event management</p><h1>Your events</h1><p class="subtitle">Create an event or switch the workspace you’re managing. Creating an event adds a separate workspace; existing events are kept.</p></div></section>
+      {% if messages %}<div class="messages" aria-live="polite">{% for message in messages %}<p class="message {{ message.tags }}">{{ message }}</p>{% endfor %}</div>{% endif %}
+      <div class="management-grid">
+        <section class="table-card panel"><div class="panel-heading"><h2>Create an event</h2><p>Guests, expense records, and crew entries belong to the selected event.</p></div>
+          <form method="post" class="stack-form">{% csrf_token %}
+            <label class="field">Event name<input name="name" maxlength="150" required placeholder="e.g. Annual conference"></label>
+            <label class="field">Venue or city<input name="venue" maxlength="200" placeholder="Optional"></label>
+            <div class="date-fields"><label class="field">Start date<input type="date" name="start_date"></label><label class="field">End date<input type="date" name="end_date"></label></div>
+            <button class="btn btn-primary" type="submit">＋ Create event</button>
+          </form>
+        </section>
+        <section class="table-card panel"><div class="panel-heading"><h2>Event workspaces</h2><p>{{ event_list|length }} event{{ event_list|length|pluralize }} created</p></div>
+          <div class="record-list">
+            {% for event in event_list %}
+              <article class="record-row"><div><strong>{{ event.name }}</strong><small>{{ event.venue|default:"Venue not set" }}{% if event.start_date %} · {{ event.start_date|date:"M j, Y" }}{% endif %}</small></div>
+                {% if active_event.id == event.id %}<span class="status-chip">Active</span>{% else %}<form method="post" action="{% url 'select_event' event.id %}">{% csrf_token %}<button class="btn" type="submit">Switch to event</button></form>{% endif %}
+              </article>
+            {% empty %}<p class="empty-state">No events yet. Create your first event to start tracking guests, expenses, and crew.</p>{% endfor %}
+          </div>
+        </section>
+      </div>
+    </div>
+  </main>
+</div></body></html>
