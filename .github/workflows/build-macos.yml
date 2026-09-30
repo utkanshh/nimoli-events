@@ -15,8 +15,10 @@ jobs:
         include:
           - runner: macos-15
             architecture: Apple-Silicon
+            python: /opt/homebrew/opt/python@3.13/bin/python3.13
           - runner: macos-15-intel
             architecture: Intel
+            python: /Library/Frameworks/Python.framework/Versions/3.13/bin/python3.13
     runs-on: ${{ matrix.runner }}
     timeout-minutes: 30
     steps:
@@ -24,11 +26,16 @@ jobs:
         uses: actions/checkout@v4
 
       - name: Install Python and Tk support
+        if: matrix.architecture == 'Apple-Silicon'
         run: brew install python@3.13 python-tk@3.13
+
+      - name: Verify Intel Python and Tk support
+        if: matrix.architecture == 'Intel'
+        run: ${{ matrix.python }} -c "import tkinter; print('Tk is available')"
 
       - name: Build app and ZIP
         run: |
-          PYTHON="$(brew --prefix python@3.13)/bin/python3.13" bash ./build_macos.sh
+          PYTHON="${{ matrix.python }}" bash ./build_macos.sh
 
       - name: Upload macOS app
         uses: actions/upload-artifact@v4
