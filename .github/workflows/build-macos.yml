@@ -1,0 +1,39 @@
+name: Build macOS apps
+
+on:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  build:
+    name: Build ${{ matrix.architecture }} app
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - runner: macos-15
+            architecture: Apple-Silicon
+          - runner: macos-15-intel
+            architecture: Intel
+    runs-on: ${{ matrix.runner }}
+    timeout-minutes: 30
+    steps:
+      - name: Check out source
+        uses: actions/checkout@v4
+
+      - name: Install Python and Tk support
+        run: brew install python@3.13 python-tk@3.13
+
+      - name: Build app and ZIP
+        run: |
+          PYTHON="$(brew --prefix python@3.13)/bin/python3.13" ./build_macos.sh
+
+      - name: Upload macOS app
+        uses: actions/upload-artifact@v4
+        with:
+          name: Nimoli-Bhandari-Events-macOS-${{ matrix.architecture }}
+          path: dist/Nimoli-Bhandari-Events-macOS.zip
+          if-no-files-found: error
+          retention-days: 14

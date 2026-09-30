@@ -40,12 +40,20 @@ fi
   --collect-all PIL \
   desktop_launcher.py
 
+cp "$ROOT/MACOS-APP.txt" "$ROOT/dist/README.txt"
+PACKAGE_ROOT="$(mktemp -d)"
+PACKAGE_DIR="$PACKAGE_ROOT/Nimoli Bhandari Events"
+mkdir "$PACKAGE_DIR"
+trap 'rm -rf "$PACKAGE_ROOT"' EXIT
+cp -R "$ROOT/dist/Nimoli Bhandari Events.app" "$PACKAGE_DIR/"
+cp "$ROOT/dist/README.txt" "$PACKAGE_DIR/"
 ditto -c -k --sequesterRsrc --keepParent \
-  "$ROOT/dist/Nimoli Bhandari Events.app" \
+  "$PACKAGE_DIR" \
   "$ROOT/dist/Nimoli-Bhandari-Events-macOS.zip"
 
 echo
 echo "Built: $ROOT/dist/Nimoli Bhandari Events.app"
 echo "Download package: $ROOT/dist/Nimoli-Bhandari-Events-macOS.zip"
+echo "Read me: $ROOT/dist/README.txt"
 echo "Data folder: ~/Library/Application Support/Gather RSVP"
 echo "The app is unsigned. For distribution beyond your own Mac, sign and notarize it with an Apple Developer ID."

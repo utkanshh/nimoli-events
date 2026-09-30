@@ -1,0 +1,36 @@
+Nimoli Bhandari Events for macOS
+
+INSTALL
+1. Extract the ZIP on the Mac and open the extracted "Nimoli Bhandari Events" folder.
+2. Move "Nimoli Bhandari Events.app" to Applications or another folder you control.
+3. Control-click the app in Finder and choose Open. Confirm Open if macOS warns that
+   the app is from an unidentified developer. The app is not currently signed or
+   notarized with an Apple Developer ID.
+4. Choose "Open RSVP dashboard" in the launcher window.
+5. On first run, select "Create organizer account" in the dashboard.
+6. Create an event before adding guests.
+7. Choose "Exit Nimoli Bhandari Events" when finished.
+
+Use the Apple Silicon download on Macs with an M-series processor. Use the Intel
+download on Intel Macs. The app and its data are stored separately from the Windows
+edition.
+
+DATA
+Guest records remain on this Mac in:
+~/Library/Application Support/Gather RSVP/gather.sqlite3
+
+Event photos and videos remain under:
+~/Library/Application Support/Gather RSVP/media
+
+Keep the Mac account and data folder private, and arrange backups for real event data.
+The app starts with an empty guest list and does not transfer data from another
+computer. Do not copy the SQLite database while the app is running.
+
+LIMITS
+- This is a local desktop app. It does not share or synchronize data with another
+  computer or phone.
+- Public guest RSVP links and WhatsApp campaigns require a separately hosted HTTPS
+  website and official WhatsApp Business Platform setup.
+- Imported contacts default to no WhatsApp consent. Only record consent after a
+  guest has agreed.
+- Do not collect Aadhaar/passport numbers or identity document images in this app.
