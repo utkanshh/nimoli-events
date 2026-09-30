@@ -28,7 +28,7 @@ jobs:
 
       - name: Build app and ZIP
         run: |
-          PYTHON="$(brew --prefix python@3.13)/bin/python3.13" ./build_macos.sh
+          PYTHON="$(brew --prefix python@3.13)/bin/python3.13" bash ./build_macos.sh
 
       - name: Upload macOS app
         uses: actions/upload-artifact@v4
